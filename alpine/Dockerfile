@@ -14,6 +14,7 @@ ENV DEV="teste"
 #    apk add --no-cache npm && \
 #    apk add --no-cache git
 
+
 # precisa usar o LF invés do CRLF, por causa da quebra de linha
 RUN <<EOF 
     apk add --no-cache nodejs
