@@ -30,8 +30,10 @@ RUN <<EOF
     apk add --no-cache git
 EOF
 
-# adiciona um usuário no SO (linux, distro alpine)
-RUN adduser -D teste
+# adiciona um usuário no SO (linux, distro alpine), depois cria um grupo, e adiciona o usuario no grupo
+RUN adduser -D teste \
+    && addgroup dev \
+    && addgroup teste dev
 
 # define o usuario responsavel pela execução dos proximos RUNs
 USER teste
@@ -63,6 +65,15 @@ ENV 1_PRD=${1_PRD} \
 # define uma variavel e roda criando um arquivo com a mensagem no caminho especificado
 ENV MSG "variavel de ambiente criada no dockerfile"
 RUN echo ${MSG} > /tmp/arquivo_criado_no_build.txt
+
+# ADD <origem> <destino>, adiciona um arquivo do host para dentro da imagem
+ADD ./arquivo1.txt /tmp/
+ADD ./arquivo2.txt /tmp/
+# usando o coringa * para copiar arquivos de uma vez
+ADD ./*.txt /tmp/
+ADD ./arquivo* /tmp/
+# adiciona o arquivo, com o usuario e grupo criado anteriormente, dando as permissoes necessarias
+ADD --chown=teste:dev --chmod=777 ./arquivo3.txt /tmp/
 
 # CMD executa um comando automaticamente quando a imagem for usada e inicializada em  um container
 # -c, define que oque vem apos é uma string
