@@ -1,4 +1,12 @@
-FROM alpine:3.19.0
+# argumento disponivel de onde foi criado para baixo
+ARG ALPINE_VERSION
+
+# utilizando o argumento
+# passando o valor do argumento no build
+# docker build --build-arg ALPINE_VERSION=3.19.0 -t nome_imagem .
+FROM alpine:${ALPINE_VERSION}
+#  usando a imagem alpine 
+#FROM alpine:3.19.0
 
 #criando variavel para reutilizar no dockerfile, em qualquer instrução
 ENV DEV="teste"
@@ -22,6 +30,12 @@ RUN <<EOF
     apk add --no-cache git
 EOF
 
+# adiciona um usuário no SO (linux, distro alpine)
+RUN adduser -D teste
+
+# define o usuario responsavel pela execução dos proximos RUNs
+USER teste
+
 # metadados, para informar algo
 # reutiliozando a variavel criada
 LABEL desenvolvedor=${DEV}
@@ -38,4 +52,24 @@ ENV 1_PRD="https://meu-app.com.br:3007" \
     2_PRD="https://meu-ap.com.br" \
     3_PRD="https://meu-a.com.br"
 
+# criando ARG para v ariavel com valor padrao, podendo ser alterado no CLI
+ARG 1_PRD="https://meu-app.com.br:3007"
+# caso nao seja passado um novo valor, o padrao é assumido
+ENV 1_PRD=${1_PRD} \
+    2_PRD="https://meu-ap.com.br" \
+    3_PRD="https://meu-a.com.br"
+
+
+# define uma variavel e roda criando um arquivo com a mensagem no caminho especificado
+ENV MSG "variavel de ambiente criada no dockerfile"
+RUN echo ${MSG} > /tmp/arquivo_criado_no_build.txt
+
+# CMD executa um comando automaticamente quando a imagem for usada e inicializada em  um container
+# -c, define que oque vem apos é uma string
+# cada dockerfile possui um unico CMD
+# mesmo definindo um CMD no dockerfile, podemos passar no CLI
+CMD ["/bin/sh", "-c", "echo Exectando comando automaticamente"]
+
 # docker run -it id_container /bin/sh - para acessar o container
+# ARG x ENV = ARG permite que parametros sejam passados no CLI, para ficar disponivel no Dockerfile; ENV = cria 
+# variaveis de ambiente dentro do Dockerfile; variaveis de ambiente sobrepoe os argumentos em caso de conflitos de nomes
