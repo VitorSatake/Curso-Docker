@@ -68,6 +68,7 @@ ENV 1_PRD=${1_PRD} \
 ENV MSG "variavel de ambiente criada no dockerfile"
 RUN echo ${MSG} > /tmp/arquivo_criado_no_build.txt
 
+# Também podendo ser utilizado o COPY, semanticamente o COPY é melhor (menos para copiar URLs, ai usa o ADD)
 # ADD <origem> <destino>, adiciona um arquivo do host para dentro da imagem
 ADD ./arquivo1.txt /tmp/
 ADD ./arquivo2.txt /tmp/
