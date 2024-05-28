@@ -28,6 +28,8 @@ RUN <<EOF
     apk add --no-cache nodejs
     apk add --no-cache npm
     apk add --no-cache git
+    apk add --no-cache nano
+    apk add --no-cache unzip
 EOF
 
 # adiciona um usuário no SO (linux, distro alpine), depois cria um grupo, e adiciona o usuario no grupo
@@ -70,10 +72,26 @@ RUN echo ${MSG} > /tmp/arquivo_criado_no_build.txt
 ADD ./arquivo1.txt /tmp/
 ADD ./arquivo2.txt /tmp/
 # usando o coringa * para copiar arquivos de uma vez
+# pode usar tbm o ? para um unico caracter - ./arquivo?.txt /tmp/
 ADD ./*.txt /tmp/
 ADD ./arquivo* /tmp/
 # adiciona o arquivo, com o usuario e grupo criado anteriormente, dando as permissoes necessarias
 ADD --chown=teste:dev --chmod=777 ./arquivo3.txt /tmp/
+
+# adicionar um zip e descompactar
+ADD --chown=teste:dev arquivo.zip /tmp/
+RUN cd /tmp/ \
+    && unzip arquivo.zip
+
+# adiciona arquivo por url, no caso para /opt/app/
+ADD --chown=teste:dev url-do-curso.tar /opt/app/
+RUN cd /opt/app/ \
+    && tar xvzf server.tar.gz \
+    && rm server.tar.gr
+
+# para executar a aplicação a partir do RUN acima
+#CMD ["/bin/sh", "-c", "cd /opt/app/ && node server.js"]
+
 
 # CMD executa um comando automaticamente quando a imagem for usada e inicializada em  um container
 # -c, define que oque vem apos é uma string
