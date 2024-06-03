@@ -68,6 +68,7 @@ ENV 1_PRD=${1_PRD} \
 ENV MSG "variavel de ambiente criada no dockerfile"
 RUN echo ${MSG} > /tmp/arquivo_criado_no_build.txt
 
+# Também podendo ser utilizado o COPY, semanticamente o COPY é melhor (menos para copiar URLs, ai usa o ADD)
 # ADD <origem> <destino>, adiciona um arquivo do host para dentro da imagem
 ADD ./arquivo1.txt /tmp/
 ADD ./arquivo2.txt /tmp/
@@ -89,6 +90,11 @@ RUN cd /opt/app/ \
     && tar xvzf server.tar.gz \
     && rm server.tar.gr
 
+# copiando multiplos arquivos
+COPY ./arquivo1.txt ./arquivo2.txt ./arquivo3.txt /tmp/mult-arquivos/
+# copiando tudo do contexto do dockerfile
+COPY . /tmp/
+
 # para executar a aplicação a partir do RUN acima
 #CMD ["/bin/sh", "-c", "cd /opt/app/ && node server.js"]
 
@@ -97,8 +103,32 @@ RUN cd /opt/app/ \
 # -c, define que oque vem apos é uma string
 # cada dockerfile possui um unico CMD
 # mesmo definindo um CMD no dockerfile, podemos passar no CLI
-CMD ["/bin/sh", "-c", "echo Exectando comando automaticamente"]
+#CMD ["/bin/sh", "-c", "echo Exectando comando automaticamente"]
+
+# Serviço imprime texto no terminal
+# ENTRYPOINT - indica (define) o serviço do container, no caso abaixo o echo, podendo depois passar apenas o comando no CMD
+# e o ENTRYPOINT nao pode ser sobreposto como o CMD
+#ENTRYPOINT [ "echo", "Parametro 1" ]
+#CMD [ "Parametro 2" ]
+
+# Serviço listar o conteúdo do diretório raiz
+#ENTRYPOINT [ "ls" ]
+# combinando com CMD, o entrypoint define e o cmd complementa um comando padrao
+#CMD [ "-la" ]
+
+# usando ENTRYPOINT de um arquivo externo
+COPY ./dockerfile-entrypoint.sh /start/dockerfile-entrypoint.sh
+ENTRYPOINT [ "/start/dockerfile-entrypoint.sh" ]
+
+# WORKDIR - define o diretório padrao para as instruções RUN, CMD, ADD, COPY etc
+WORKDIR /
+# funciona como o cd para mudança de diretório, podendo ser usada mais vezes no dockerfile de acordo com a necessidade
+
+# EXPOSE - documenta a porta em tempo de execução do container, nao define, isso é feito no run no bind de porta
+EXPOSE 4000/tcp
+EXPOSE 4000/udp
 
 # docker run -it id_container /bin/sh - para acessar o container
 # ARG x ENV = ARG permite que parametros sejam passados no CLI, para ficar disponivel no Dockerfile; ENV = cria 
 # variaveis de ambiente dentro do Dockerfile; variaveis de ambiente sobrepoe os argumentos em caso de conflitos de nomes
+# no docker run o -p define o bind ex 3000:3000, e o -P faz o bind baseado no expose do dockerfile, fazendo uma alocação automatica de porta no host
