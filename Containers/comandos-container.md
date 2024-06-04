@@ -52,3 +52,27 @@ docker exec -it id-container /bin/sh - acessa o container / printenv - printa as
 
 ## Definindo variaveis de ambiente via arquivo externo
 docker run --name some-postgres --env-file Containers\env.list.txt(caminho do arquivo com as variaveis) -d -P postgres
+
+## Transferindo arquivos do host para o container (exemplo com mongodb)
+docker run --name some-mongo -d mongo:latest - para subir o container
+
+docker cp Containers\teste_cp_host_para_container.txt(caminho do arquivo no host) ID_CONTAINER(ou nome):destino_no_container
+
+## Transferindo arquivos do container para o host (exemplo com mongodb)
+docker run --name some-mongo -d mongo:latest - para subir o container
+
+docker cp ID_CONTAINER(ou nome):arquivo_no_container destino_no_host
+
+## Definindo diretorio de trabalho (exemplo com imagem PHP)
+docker run --name some-php -it  -w ou --workdir /diretorio_desejado(se existir acessa, se nao, cria) id_container /bin/sh - para subir o container e ja acessar o terminal interativo
+
+## Inspecionar a diferença do file system de um container em relação a imagem
+docker diff <CONTAINER>
+
+Simbolos a esquerda do nome do arquivo ou diretorio:
+
+A = arquivo ou diretorio adicionado
+
+D = arquivo ou diretorio removido
+
+C = arquivo ou diretorio modificado
