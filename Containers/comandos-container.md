@@ -12,7 +12,7 @@ docker logs <opções = -f, --follow -n, --tail> CONTAINER (-n 10 = retorna as 1
 
 docker stats <opções> <CONTAINER> - verfifica as estatisticas de um container (-a, --all, verifica tambem os parados)
 
-### Nome ao container:
+## Nome ao container:
 docker run --name nome-do-conatainer IMAGEM
 
 ### Execução do container em segundo plano (nao travar o terminal)
