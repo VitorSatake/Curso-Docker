@@ -32,18 +32,22 @@ docker update --cpus 3 --m 250mb <CONTAINER>
 
 ## Executando comandos no container
 docker exec <CONTAINER> ls (comando a ser excecutado, sem acessar o terminal interativo)
+
 docker exec <CONTAINER> mkdir nome-diretorio (comando a ser excecutado, sem acessar o terminal interativo)
 
 ## Acessando o terminal interativo
 docker exec -it <CONTAINER> /bin/shell-do-container(sh-bash-etc) - para container ja em execução
+
 docker run -it --name app-golang --cpus 2 --memory 400mb goland - acessando o terminal na inicialização do container
 
 ## Expondo portas do container
 docker run --name some-wordpress -p 8080:80 -d wordpress (fazendo o bind da porta 8080 do host (voce pode definir a porta do host), para a 80 do container) 
+
 docker run --name some-wordpress -P -d wordpress (-P mapeia o expose de porta do container, e atribui portas aleatorias do lado do host)
 
 ## Definindo variaveis de ambiente via linha de comando (exemplo mysql)
 docker run --name some-mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d -P mysql:tag (-e, --env para definir o nome e valor da variavel de ambiente) - pode passa mais variaveis com o -e
+
 docker exec -it id-container /bin/sh - acessa o container / printenv - printa as variaveis de ambiente
 
 ## Definindo variaveis de ambiente via arquivo externo
