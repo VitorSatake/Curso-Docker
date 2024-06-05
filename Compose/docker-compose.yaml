@@ -7,3 +7,13 @@ services:
     ports:
       - 8085:80
       - 8443:443
+
+  front-end:
+    build:
+      context: ./front-end/
+      dockerfile: Dockerfile.dev
+      target: dev
+    volumes:
+      - ./front-end:/app
+    ports:
+      - 3000:3000
