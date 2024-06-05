@@ -1,0 +1,9 @@
+# Criando o Docker-Compose de uma aplicação Web
+
+version: "3.8"
+services:
+  http:
+    image: nginx:stable-alpine3.17-slim
+    ports:
+      - 8085:80
+      - 8443:443
