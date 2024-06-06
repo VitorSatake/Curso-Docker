@@ -154,3 +154,5 @@ volumes:
 # usar o docker compose sem bloquear o terminal
 # docker compose up -d
   
+
+  
