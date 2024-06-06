@@ -1,14 +1,28 @@
 # Criando o Docker-Compose de uma aplicação Web
 
 version: "3.8"
+
 services:
   http:
+    container_name: http
     image: nginx:stable-alpine3.17-slim
     ports:
       - 8085:80
       - 8443:443
+    restart: "no" # nao reinicia o container independente de como foi interrompido
+    networks:
+      - rede-app
+    depends_on: # cria a dependencia na hora de criação e desligamento
+      - front-end # nome do serviço, nao do container, caso sejam diferentes
+      - back-end
+    #depends_on: condições de dependencia
+    #   front-end:
+    #      condition: service_started - se o serviço foi iniciado            
+    #   back-end:
+    #      condition: service_started
 
   front-end:
+    container_name: front
     build:
       context: ./front-end/
       dockerfile: Dockerfile.dev
@@ -17,3 +31,126 @@ services:
       - ./front-end:/app
     ports:
       - 3000:3000
+    restart: always # coloca automaticamente o container em execução
+    networks:
+      - rede-app
+    depends_on:
+      - back-end
+
+  back-end:
+    container_name: back
+    build:
+      context: ./back-end/
+      dockerfile: Dockerfile
+      target: dev
+    volumes:
+      - ./back-end:/app
+    ports:
+      - 3010:3000
+    #restart: on-failure # reinicia o container caso seja interrompido com um status diferente de 0
+    restart: on-failure:5 # com a quantidade de tentativas (até 5 tentativas)
+    networks:
+      - rede-app
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy # verifica o estado de integridade(saude) definido no db
+      db-nosql:
+        condition: service_started
+      cache:
+        condition: service_started
+      messaging:
+        condition: service_started
+
+  migration:
+    image: alpine:latest
+    container_name: migration
+    depends_on:
+      db:
+        condition: service_started
+    networks:
+      - rede-app
+    command: sleep 10 # exit 0
+
+  db:
+    container_name: db
+    image: postgres:16.2-alpine3.19
+    environment:
+      - POSTGRES_PASSWORD=123456
+    volumes:
+      - db-app:/var/lib/postgresql/data
+    #ports:
+      #- 5432:5432 configurando uma porta para acessar com um dbeaver por exemplo
+      #melhor em tempo de desenvolvimento, o adminer é muito limitado
+    restart: unless-stopped # tenta reiniciar a menos que o container tenha sido interrompido explicitamente pelo usuario
+    networks:
+      - rede-app
+    healthcheck: # starting=status até a execução do primeiro teste ou ate chegar no unhealth; health=serviço saudavel
+      test: ["CMD", "pg_isready", "-U", "postgres"] # verificar um bom teste para executar de acordo com o banco ou serviço utilizado
+      #test: ["CMD-SHELL", "pg_isready -U postgres"] CMD-SHELL permite uma string, pode encadear um comando no outro
+      interval: 5s # intervalo de tempo entre as tentativas
+      timeout: 5s # timeout da execução do teste, tempo que espera pelo retorno da resposta do teste
+      retries: 3 # quantidade de tentativas em caso de falha
+
+  db-adminer:
+    container_name: db-adminer
+    image: adminer:4.8.1
+    ports:
+      - 8088:8080
+    networks:
+      - rede-app
+    depends_on:
+      - db
+  
+  db-nosql:
+    container_name: db-nosql
+    image: mongo:8.0.0-rc7-jammy
+    restart: always
+    ports:
+      - 27017:27017
+    env_file:
+      - ./mongo/.env #usando um arquivo externo para variaveis de ambiente, importante para informações sensiveis   
+                     # pode passar varios arquivos externos com variaveis de ambiente
+    volumes:
+      - nosql-app:/data/db
+    networks:
+      - rede-app
+
+  cache:
+    container_name: cache
+    image: redis:7.0.15-alpine3.20
+    command: redis-server --save 60 1 --loglevel warning # sobrepoe a expressao CMD contida na imagem
+    ports:
+      - 6379:6379 # expondo porta para teste apenas
+    networks:
+      - rede-app
+
+  messaging:
+    container_name: messaging
+    image: apache/kafka:3.7.0
+    ports:
+      - 9092:9092 
+    networks:
+      - rede-app
+
+
+# criando uma nova rede
+networks:
+  #compose_rede-app (caso o atributo name não seja definido)
+  rede-app:
+    name: rede-app
+    driver: bridge
+
+#criando volume gerenciado pelo docker, para garantir a persistencia dos dados caso ocorra algum problema com o container
+volumes:
+  db-app:
+  nosql-app:
+
+
+# Usando o docker compise up com nome especifico 
+# docker compose -f <nome_arqvuivo> up
+# ou separar por pastas 
+# usar o docker compose sem bloquear o terminal
+# docker compose up -d
+  
